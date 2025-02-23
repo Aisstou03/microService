@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Détails de la Maquette Chef</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+  <!-- Fichiers CSS et JS de Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <link  rel="stylesheet" href="../static/css/style.css" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<div class="container mt-5">
+  <h1 class="text-center mb-4">Détails de la Maquette Chef</h1>
+
+  <div class="row" style="padding-bottom: 10px; padding-top: 10px">
+    <div style="text-align: center">
+      <button class="btn btn-success" data-toggle="modal" data-target="#formAjouterMaquette">Ajouter une Maquette</button>
+    </div>
+  </div>
+  <!-- Affichage des messages flash (succès ou erreur) -->
+  <div th:if="${error}" class="alert alert-danger">
+    <span th:text="${error}"></span>
+  </div>
+
+  <div th:if="${success}" class="alert alert-success">
+    <span th:text="${success}"></span>
+  </div>
+
+
+  <!-- Modal Ajouter Maquette -->
+  <div class="modal fade" id="formAjouterMaquette" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <form th:action="@{/maquettes/ajouter}" method="post">
+          <div class="modal-header">
+            <h5 class="modal-title">Ajouter une Maquette</h5>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <!-- Ajouter les informations de formation et de classe dans des champs cachés -->
+          <input type="hidden" name="formationId" th:value="${classe.formation.id}" />
+          <input type="hidden" name="classeId" th:value="${classe.id}" />
+
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="semestre">Semestre</label>
+              <select id="semestre" name="semestre" class="form-control" required>
+                <option value="" disabled selected>Choisir un semestre</option>
+                <option value="Semestre 1">Semestre 1</option>
+                <option value="Semestre 2">Semestre 2</option>
+                <option value="Semestre 3">Semestre 3</option>
+                <option value="Semestre 4">Semestre 4</option>
+                <option value="Semestre 5">Semestre 5</option>
+                <option value="Semestre 6">Semestre 6</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ue">Unité d'Enseignement (UE)</label>
+              <select id="ue" name="ue" class="form-control" required>
+                <option value="" disabled selected>Choisir une UE</option>
+                <option th:each="ue : ${listeDesUEs}"
+                        th:value="${ue.id}"
+                        th:text="${ue.libelle}"></option>
+              </select>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Ajouter</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!--fin Modal Ajouter Maquette-->
+
+  <!-- Affichage des maquettes par semestre -->
+  <div>
+    <!-- Affichage de la classe comme un titre -->
+    <h2 th:text="${classe.formation.nom} + ' ' + ${classe.niveau}"></h2>
+
+    <div th:each="semestre : ${semestres}" class="mt-4">
+      <!-- Titre du semestre -->
+      <h3>[[${semestre}]]</h3>
+        <table class="table table-bordered table-striped">
+          <thead>
+          <tr>
+            <th colspan="3" class="bg-light">Unité d'Enseignement (UE)</th>
+            <th colspan="8">EC associés</th>
+          </tr>
+          <tr>
+            <th class="bg-light">Intitulé</th>
+            <th class="bg-light">Crédits UE</th>
+            <th class="bg-light">Coeff UE</th>
+            <th>Intitulé</th>
+            <th>CM</th>
+            <th>TD</th>
+            <th>TP</th>
+            <th>CM+TD/TP</th>
+            <th>TPE</th>
+            <th>Coefficient</th>
+            <th>Opérations</th>
+          </tr>
+          </thead>
+          <tbody>
+          <th:block th:each="maquette : ${maquettes}" th:if="${maquette.semestre == semestre}">
+            <th:block th:each="ue, ueStat : ${maquette.ue}">
+              <th:block th:with="ecCount=${#lists.size(ue.ecs)}">
+                <tr th:each="ec, ecStat : ${ue.ecs}" class="border-bottom">
+                  <!-- UE : Appliquer bg-light uniquement sur la première ligne de l'UE -->
+                  <td th:if="${ecStat.first}" th:rowspan="${ecCount}" class="bg-light">
+                    <strong th:text="${ue.code} + ' - ' + ${ue.libelle}"></strong>
+                  </td>
+                  <td th:if="${ecStat.first}" th:rowspan="${ecCount}" class="bg-light" th:text="${ue.credit}"></td>
+                  <td th:if="${ecStat.first}" th:rowspan="${ecCount}" class="bg-light" th:text="${ue.coefficient}"></td>
+
+            <!-- Ouvre le modal de suppression -->
+            <form th:action="@{/maquettes/suppMaquette/{id}(id=${maquette.id})}" method="post"
+                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette Maquette ?');"
+                  style="display: inline;">
+
+          </td>
+
+                  <!-- EC affichés ligne par ligne -->
+                  <td th:text="${ec.libelle}"></td>
+                  <td th:text="${ec.cm}"></td>
+                  <td th:text="${ec.td}"></td>
+                  <td th:text="${ec.tp}"></td>
+                  <td th:text="${ec.tp != 0 ? ec.cm + (ec.td / ec.tp) : ec.cm}"></td>
+                  <td th:text="${ec.tpe}"></td>
+                  <td th:text="${ec.coefficient}"></td>
+
+                  <!-- Colonne d'Opérations -->
+                  <td>
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modifierModal" title="Modifier">
+                      <i class="fa fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#supprimerModal" title="Supprimer"
+                            onclick="confirm('Êtes-vous sûr de vouloir supprimer cette maquette ?')">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </th:block>
+            </th:block>
+          </th:block>
+
+          <!-- Ligne Total : Appliquer bg-light -->
+          <tr class="bg-light">
+            <td><strong>Total semestre</strong></td>
+            <td th:text="${totalCreditsUE[semestre]}"></td>
+            <td th:text="${totalCoeffUE[semestre]}"></td>
+            <td><strong>Total semestre</strong></td>
+            <td th:text="${totalCM[semestre]}"></td>
+            <td th:text="${totalTD[semestre]}"></td>
+            <td th:text="${totalTP[semestre]}"></td>
+            <td th:text="${totalSumFormula[semestre]}"></td>
+            <td th:text="${totalTPE[semestre]}"></td>
+            <td th:text="${totalCoefficient[semestre]}"></td>
+            <td colspan="6"></td>
+          </tr>
+          </tbody>
+        </table>
+    </div>
+  </div>
+  <!-- Bouton Retour -->
+  <a th:href="@{'/details_formation?id=' + ${classe.formation.id}}" class="btn btn-primary">Retour</a>
+
+</div>
+
+</div>
+<!-- Modal Modifier Maquette -->
+<div class="modal fade" id="modifierModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form th:action="@{/maquettes/modifier_maquette}" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title">Modifier une Maquette</h5>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <input type="hidden" id="maquetteId" name="id" />
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="semestreModifier">Semestre</label>
+            <select id="semestreModifier" name="semestre" class="form-control" required>
+              <option value="" disabled>Choisir un semestre</option>
+              <option value="Semestre 1">Semestre 1</option>
+              <option value="Semestre 2">Semestre 2</option>
+              <option value="Semestre 3">Semestre 3</option>
+              <option value="Semestre 4">Semestre 4</option>
+              <option value="Semestre 5">Semestre 5</option>
+              <option value="Semestre 6">Semestre 6</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="ueModifier">Unité d'Enseignement (UE)</label>
+            <select id="ueModifier" name="ueIds" class="form-control" multiple>
+              <option th:each="ue : ${listeDesUEs}"
+                      th:value="${ue.id}"
+                      th:text="${ue.libelle}"></option>
+            </select>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Enregistrer</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Script pour charger les données dans le modal de modification -->
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".btn-warning").forEach(button => {
+      button.addEventListener("click", function () {
+        const maquetteRow = this.closest("tr");
+        const maquetteId = maquetteRow.getAttribute("data-maquette-id");
+        const semestre = maquetteRow.querySelector(".semestre").textContent.trim();
+        const ueValue = maquetteRow.querySelector(".ue").getAttribute("data-ue-id");
+
+        // Remplir les champs du formulaire de modification
+        document.getElementById("maquetteId").value = maquetteId;
+        document.getElementById("semestreModifier").value = semestre;
+        document.getElementById("ueModifier").value = ueValue;
+      });
+    });
+  });
+</script>
+
+
+<script>
+    // On écoute les changements sur les cases à cocher
+    document.querySelectorAll('.choice-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            // Vérifier si au moins une case est cochée
+            const anyChecked = document.querySelectorAll('.choice-checkbox:checked').length > 0;
+
+            // Afficher ou masquer le bouton de soumission en fonction
+            document.getElementById('submitButton').style.display = anyChecked ? 'inline-block' : 'none';
+        });
+    });
+</script>
+
+
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>

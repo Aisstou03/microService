@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" th:href="@{/css/bootstrap.css}"/>
+  <link  rel="stylesheet" href="../static/css/style.css" th:href="@{/css/style.css}"/>
+  <link rel="stylesheet" th:href="@{/css/buttons.dataTables.min.css}"/>
+  <link rel="stylesheet" th:href="@{/css/jquery.dataTables.min.css}"/>
+  <script th:src="@{/js/jquery-3.7.0.js}"></script>
+  <script th:src="@{/js/bootstrap.js}"></script>
+  <script th:src="@{/js/dataTables.buttons.min.js}"></script>
+  <script th:src="@{/js/jquery.dataTables.min.js}"></script>
+
+  <title>Batiment</title>
+</head>
+<body>
+<div class="container">
+  <div class="row" style="padding-bottom: 10px; padding-top: 10px">
+    <div style="text-align: center">
+      <h3>La liste des Batiments</h3>
+      <button type="button" class="btn btn-success" data-toggle="modal" data-target="#form_Ajouter_Batiment">Ajouter Batiment</button>
+    </div>
+  </div>
+
+  <!-- Début popup ajouter un Batiment -->
+  <div class="modal fade" id="form_Ajouter_Batiment" tabindex="-1" role="dialog" aria-labelledby="formAjouterBatimentTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content panel-success">
+        <!-- Modal Header -->
+        <div class="modal-header panel-heading">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Ajouter un Batiment</h4>
+        </div>
+        <!-- Modal Body -->
+        <form th:action="@{/ajouter_batiment}" method="post">
+          <div class="modal-body">
+            <!-- Champs du formulaire -->
+            <div class="form-group">
+              <label>Code</label>
+              <input type="text" class="form-control" name="code" />
+            </div>
+            <div class="form-group">
+              <label>Nom</label>
+              <input type="text" class="form-control" name="nom" />
+            </div>
+          </div>
+          <!-- Modal Footer -->
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-success">Enregistrer</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Fin popup ajouter un Batiment -->
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped" id="table_Batiment">
+      <thead>
+      <tr>
+        <th>Code</th>
+        <th>Nom</th>
+        <th>Actions</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="batiment : ${listeDesBatiments}">
+        <td th:text="${batiment.code}"></td>
+        <td th:text="${batiment.nom}"></td>
+        <td>
+          <button class="btn btn-info btn-sm" data-toggle="modal" th:attr="data-target='#form_Modifier_Batiment' + ${batiment.id}">Modifier</button>
+          <button class="btn btn-danger btn-sm" data-toggle="modal" th:attr="data-target='#form_Supprimer_Batiment' + ${batiment.id}">Supprimer</button>
+          <a class="btn btn-primary btn-sm" th:href="@{/details_batiment(id=${batiment.id})}">Voir</a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Script pour DataTable -->
+  <script>
+    $(document).ready(function() {
+        $("#table_Batiment").DataTable();
+    });
+</script>
+
+  <!-- Début popup modifier un Batiment -->
+  <div th:each="batiment : ${listeDesBatiments}" class="modal fade" th:attr="id='form_Modifier_Batiment' + ${batiment.id}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content panel-info">
+        <div class="modal-header panel-heading">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Modifier Batiment</h4>
+        </div>
+        <form th:action="@{/modifier_batiment}" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="id" th:value="${batiment.id}" />
+            <!-- Champs du formulaire de modification -->
+            <div class="form-group">
+              <label>Code</label>
+              <input type="text" class="form-control" name="code" th:value="${batiment.code}"/>
+            </div>
+            <div class="form-group">
+              <label>Nom</label>
+              <input type="text" class="form-control" name="nom" th:value="${batiment.nom}"/>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-info">Enregistrer les modifications</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Fin popup modifier un Batiment -->
+
+  <!-- Début popup supprimer un Batiment -->
+  <div th:each="batiment : ${listeDesBatiments}" class="modal fade" th:attr="id='form_Supprimer_Batiment' + ${batiment.id}" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content panel-danger">
+        <div class="modal-header panel-heading">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Supprimer Batiment</h4>
+        </div>
+        <form th:action="@{/supprimer_batiment}" method="post">
+          <div class="modal-body">
+            <p>Êtes-vous sûr de vouloir supprimer ce Batiment ?</p>
+            <input type="hidden" name="id" th:value="${batiment.id}" />
+
+            <div class="form-group">
+              <label>Code</label>
+              <input type="text" class="form-control" name="code" th:value="${batiment.code}"/>
+            </div>
+            <div class="form-group">
+              <label>Nom</label>
+              <input type="text" class="form-control" name="nom" th:value="${batiment.nom}"/>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-danger">Supprimer</button>
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Fin popup supprimer un Batiment -->
+  <!-- Bouton Retour -->
+  <div>
+    <button class="btn-retour" onclick="window.location.href='/ChefDepartement/Accueil'">Retour</button>
+  </div>
+</div>
+</body>
+</html>
